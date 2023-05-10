@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Auto Join",
+  "version": "1.0",
+  "description": "Auto Join",
+  "content_scripts": [
+    {
+      "js": ["content.js"],
+      "matches": [
+        "https://meet.google.com/*"
+      ]
+    }
+  ]
+}
