@@ -11,7 +11,7 @@ function its_meet() {
 			const joinNowElement = [...document.querySelectorAll("span")].find((ele) => ele.textContent === "Join now");
 			const divs = [...document.querySelectorAll('div')];
 			const noParticipants = divs.find(e => e.textContent === "No one else is here");
-			const someoneIsPresent = divs.find(e => e.textContent.match(/is in this call/));
+			const someoneIsPresent = divs.find(e => e.textContent.match(/in this call/));
 			if(joinNowElement){
         const turnOffVideo = document.querySelector('div[aria-label="Turn off camera (ctrl + e)"]');
 				if(turnOffVideo) {
