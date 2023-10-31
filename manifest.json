@@ -7,8 +7,13 @@
     {
       "js": ["content.js"],
       "matches": [
-        "https://meet.google.com/*"
-      ]
+        "https://meet.google.com/*",
+        "https://chat.google.com/*",
+        "https://mail.google.com/chat/*",
+        "https://mail.google.com/mail/u/0/#chat/*"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
     }
   ]
 }
