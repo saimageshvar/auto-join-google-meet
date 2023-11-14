@@ -32,6 +32,7 @@ function quickConnectFor(meetingElement) {
 			if (!sendMessageButton?.disabled) {
 				sendMessageButton.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true, view: window }));
 				sendMessageButton.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, cancelable: true, view: window }));
+				sendMessageButton.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: window }));
 				clearInterval(interval);
 			}
 		} catch (err) {
