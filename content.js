@@ -6,10 +6,11 @@ function autoJoinMeetEntrypoint() {
 			const noParticipants = divs.find(e => e.textContent === "No one else is here");
 			const someoneIsPresent = divs.find(e => e.textContent.match(/in this call/));
 			if (joinNowElement) {
-				const turnOffVideo = document.querySelector('div[aria-label="Turn off camera (ctrl + e)"]');
-				if (turnOffVideo) {
-					turnOffVideo.click();
-				}
+				const turnOffVideo = selectElementsByAriaLabel("turn off camera");
+				[...turnOffVideo].map(e => e.click())
+				// if (turnOffVideo) {
+				// 	turnOffVideo.click();
+				// }
 				if (!noParticipants && someoneIsPresent) {
 					joinNowElement.click();
 					clearInterval(interval);
@@ -19,6 +20,15 @@ function autoJoinMeetEntrypoint() {
 			console.log("Error", err);
 		}
 	}, 2000);
+}
+
+function selectElementsByAriaLabel(pattern) {
+  const regex = new RegExp(pattern, 'i'); // 'i' flag for case-insensitive
+  const allElements = document.querySelectorAll('div[aria-label]');
+  const matchedElements = Array.from(allElements).filter(el => 
+    regex.test(el.getAttribute('aria-label'))
+  );
+  return matchedElements;
 }
 
 function meetingClickHandler(event) {
