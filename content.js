@@ -1,18 +1,18 @@
 function autoJoinMeetEntrypoint() {
 	const interval = setInterval(function () {
 		try {
-			const joinNowElement = [...document.querySelectorAll("span")].find((ele) => ele.textContent === "Join now");
+			const joinNowElements = [...document.querySelectorAll("span")].filter((ele) => ele.textContent === "Join now");
 			const divs = [...document.querySelectorAll('div')];
-			const noParticipants = divs.find(e => e.textContent === "No one else is here");
+			// const noParticipants = divs.find(e => e.textContent === "No one else is here");
 			const someoneIsPresent = divs.find(e => e.textContent.match(/in this call/));
-			if (joinNowElement) {
+			if (joinNowElements.length > 0) {
 				const turnOffVideo = selectElementsByAriaLabel("turn off camera");
 				[...turnOffVideo].map(e => e.click())
 				// if (turnOffVideo) {
 				// 	turnOffVideo.click();
 				// }
-				if (!noParticipants && someoneIsPresent) {
-					joinNowElement.click();
+				if (someoneIsPresent) {
+					joinNowElements.map(joinNowElement => joinNowElement.click());
 					clearInterval(interval);
 				}
 			}
