@@ -15,5 +15,12 @@
       "run_at": "document_end",
       "all_frames": true
     }
+  ,
+    {
+      "js": ["github-pr-approvals.js"],
+      "matches": ["https://github.com/*/*/pulls*"],
+      "run_at": "document_end",
+      "all_frames": false
+    }
   ]
 }
