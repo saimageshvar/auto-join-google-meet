@@ -102,6 +102,29 @@ function isAutoJoinMeetEntrypoint(url) {
 	return url.includes("meet.google.com");
 }
 
+function chatShortcutsEntrypoint() {
+	window.addEventListener('keydown', (e) => {
+		if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 'p' || e.key === 'P')) {
+			e.preventDefault();
+			e.stopPropagation();
+
+			const fire = (key, code, keyCode) => {
+				const opts = { key, code, keyCode, which: keyCode, bubbles: true, cancelable: true };
+				const target = document.activeElement || document.body;
+				target.dispatchEvent(new KeyboardEvent('keydown', opts));
+				target.dispatchEvent(new KeyboardEvent('keypress', opts));
+				target.dispatchEvent(new KeyboardEvent('keyup', opts));
+			};
+
+			if (document.activeElement && document.activeElement !== document.body) {
+				document.activeElement.blur();
+			}
+			fire('Escape', 'Escape', 27);
+			setTimeout(() => fire('q', 'KeyQ', 81), 50);
+		}
+	}, true);
+}
+
 function isquickVideoCallEntrypoint(url) {
 	const possibleURLs = [
 		/^https:\/\/chat.google.com\/*/,
@@ -118,6 +141,7 @@ function decideEntrypoint() {
 	}
 	else if (isquickVideoCallEntrypoint(url)) {
 		quickVideoCallEntrypoint();
+		chatShortcutsEntrypoint();
 	}
 }
 decideEntrypoint();
