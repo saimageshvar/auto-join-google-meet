@@ -117,7 +117,20 @@ function findSelectedConversationIndex(items) {
 	return items.findIndex(el => el.getAttribute('aria-selected') === 'true');
 }
 
+let lastNavigationAt = 0;
+
+function fireMouseSequence(el) {
+	const opts = { bubbles: true, cancelable: true, view: window, button: 0 };
+	el.dispatchEvent(new MouseEvent('mousedown', opts));
+	el.dispatchEvent(new MouseEvent('mouseup', opts));
+	el.dispatchEvent(new MouseEvent('click', opts));
+}
+
 function navigateConversation(delta) {
+	const now = Date.now();
+	if (now - lastNavigationAt < 150) return;
+	lastNavigationAt = now;
+
 	const items = findConversationItems();
 	if (!items.length) {
 		console.log('[cjs] No conversation items found');
@@ -131,7 +144,7 @@ function navigateConversation(delta) {
 
 	const target = items[nextIdx];
 	target.scrollIntoView({ block: 'nearest' });
-	target.click();
+	fireMouseSequence(target);
 }
 
 function chatShortcutsEntrypoint() {
