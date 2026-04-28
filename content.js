@@ -103,24 +103,46 @@ function isAutoJoinMeetEntrypoint(url) {
 }
 
 function chatShortcutsEntrypoint() {
+	const fire = (target, key, code, keyCode, modifiers = {}) => {
+		const opts = { key, code, keyCode, which: keyCode, bubbles: true, cancelable: true, ...modifiers };
+		target.dispatchEvent(new KeyboardEvent('keydown', opts));
+		target.dispatchEvent(new KeyboardEvent('keypress', opts));
+		target.dispatchEvent(new KeyboardEvent('keyup', opts));
+	};
+
+	const blurActive = () => {
+		if (document.activeElement && document.activeElement !== document.body) {
+			document.activeElement.blur();
+		}
+	};
+
 	window.addEventListener('keydown', (e) => {
-		if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 'p' || e.key === 'P')) {
+		const ctrlOnly = (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey;
+
+		// Ctrl+P → Esc + Q (new chat)
+		if (ctrlOnly && (e.key === 'p' || e.key === 'P')) {
 			e.preventDefault();
 			e.stopPropagation();
+			blurActive();
+			const target = document.body;
+			fire(target, 'Escape', 'Escape', 27);
+			setTimeout(() => fire(target, 'q', 'KeyQ', 81), 50);
+			return;
+		}
 
-			const fire = (key, code, keyCode) => {
-				const opts = { key, code, keyCode, which: keyCode, bubbles: true, cancelable: true };
-				const target = document.activeElement || document.body;
-				target.dispatchEvent(new KeyboardEvent('keydown', opts));
-				target.dispatchEvent(new KeyboardEvent('keypress', opts));
-				target.dispatchEvent(new KeyboardEvent('keyup', opts));
-			};
-
-			if (document.activeElement && document.activeElement !== document.body) {
-				document.activeElement.blur();
-			}
-			fire('Escape', 'Escape', 27);
-			setTimeout(() => fire('q', 'KeyQ', 81), 50);
+		// Ctrl+PageDown / Ctrl+PageUp → next/prev conversation (Chat builtin Ctrl+Alt+↓/↑)
+		if (ctrlOnly && (e.key === 'PageDown' || e.key === 'PageUp')) {
+			e.preventDefault();
+			e.stopPropagation();
+			const isDown = e.key === 'PageDown';
+			const target = document.body;
+			fire(
+				target,
+				isDown ? 'ArrowDown' : 'ArrowUp',
+				isDown ? 'ArrowDown' : 'ArrowUp',
+				isDown ? 40 : 38,
+				{ ctrlKey: true, altKey: true }
+			);
 		}
 	}, true);
 }
