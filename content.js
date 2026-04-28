@@ -1,20 +1,36 @@
 function autoJoinMeetEntrypoint() {
 	let intervalId = null;
+	let cameraDisabledOnce = false;
+
+	function tryDisableCamera() {
+		const turnOffVideo = selectElementsByAriaLabel("turn off camera");
+		if (turnOffVideo.length > 0) {
+			turnOffVideo.forEach(e => e.click());
+			cameraDisabledOnce = true;
+			document.documentElement.dataset.cjsCameraDisabled = "1";
+		}
+	}
+
+	function teardown() {
+		clearInterval(intervalId);
+		document.removeEventListener('visibilitychange', handleVisibilityChange);
+		window.removeEventListener('focus', handleFocus);
+	}
 
 	function checkAndJoin() {
 		try {
+			if (!cameraDisabledOnce) tryDisableCamera();
+
 			const joinNowElements = [...document.querySelectorAll("span")].filter((ele) => ele.textContent === "Join now");
 			const divs = [...document.querySelectorAll('div')];
 			const someoneIsPresent = divs.find(e => e.textContent.match(/in this call/));
-			if (joinNowElements.length > 0) {
-				const turnOffVideo = selectElementsByAriaLabel("turn off camera");
-				[...turnOffVideo].forEach(e => e.click());
-				if (someoneIsPresent) {
-					joinNowElements.forEach(el => el.click());
-					clearInterval(intervalId);
-					document.removeEventListener('visibilitychange', handleVisibilityChange);
-					window.removeEventListener('focus', handleFocus);
-				}
+
+			if (joinNowElements.length > 0 && someoneIsPresent) {
+				joinNowElements.forEach(el => el.click());
+			}
+
+			if (cameraDisabledOnce && joinNowElements.length === 0) {
+				teardown();
 			}
 		} catch (err) {
 			console.log("Error", err);
