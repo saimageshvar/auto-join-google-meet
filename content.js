@@ -102,6 +102,53 @@ function isAutoJoinMeetEntrypoint(url) {
 	return url.includes("meet.google.com");
 }
 
+function findConversationItems() {
+	const selectors = [
+		'[role="navigation"] [role="listitem"]',
+		'[role="navigation"] [role="treeitem"]',
+		'nav [role="listitem"]',
+		'[role="tree"] [role="treeitem"]',
+		'[role="list"] [role="listitem"]',
+	];
+	for (const sel of selectors) {
+		const items = [...document.querySelectorAll(sel)].filter(el => {
+			if (el.offsetParent === null) return false;
+			return el.querySelector('a[href]') || el.tagName === 'A';
+		});
+		if (items.length >= 2) return items;
+	}
+	return [];
+}
+
+function navigateConversation(delta) {
+	const items = findConversationItems();
+	if (!items.length) {
+		console.log('[cjs] No conversation items found');
+		return;
+	}
+
+	const currentPath = location.pathname + location.hash;
+	let currentIdx = items.findIndex(el => {
+		if (el.getAttribute('aria-selected') === 'true') return true;
+		if (el.getAttribute('aria-current') && el.getAttribute('aria-current') !== 'false') return true;
+		const a = el.tagName === 'A' ? el : el.querySelector('a[href]');
+		if (a) {
+			const href = a.getAttribute('href') || '';
+			if (href && currentPath.includes(href.replace(/^https?:\/\/[^/]+/, ''))) return true;
+		}
+		return false;
+	});
+
+	if (currentIdx === -1) currentIdx = delta > 0 ? -1 : items.length;
+	const nextIdx = Math.max(0, Math.min(items.length - 1, currentIdx + delta));
+	if (nextIdx === currentIdx) return;
+
+	const target = items[nextIdx];
+	const clickable = target.tagName === 'A' ? target : target.querySelector('a[href]') || target;
+	clickable.click();
+	clickable.scrollIntoView({ block: 'nearest' });
+}
+
 function chatShortcutsEntrypoint() {
 	const fire = (target, key, code, keyCode, modifiers = {}) => {
 		const opts = { key, code, keyCode, which: keyCode, bubbles: true, cancelable: true, ...modifiers };
@@ -130,20 +177,12 @@ function chatShortcutsEntrypoint() {
 			return;
 		}
 
-		// Alt+ArrowDown / Alt+ArrowUp → next/prev conversation (Chat builtin Ctrl+Alt+↓/↑)
+		// Alt+ArrowDown / Alt+ArrowUp → next/prev conversation via DOM walk
 		const altOnly = e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey;
 		if (altOnly && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
 			e.preventDefault();
 			e.stopPropagation();
-			const isDown = e.key === 'ArrowDown';
-			const target = document.body;
-			fire(
-				target,
-				isDown ? 'ArrowDown' : 'ArrowUp',
-				isDown ? 'ArrowDown' : 'ArrowUp',
-				isDown ? 40 : 38,
-				{ ctrlKey: true, altKey: true }
-			);
+			navigateConversation(e.key === 'ArrowDown' ? 1 : -1);
 		}
 	}, true);
 }
