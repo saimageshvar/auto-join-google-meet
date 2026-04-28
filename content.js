@@ -1,30 +1,46 @@
 function autoJoinMeetEntrypoint() {
-	const interval = setInterval(function () {
+	let intervalId = null;
+
+	function checkAndJoin() {
 		try {
 			const joinNowElements = [...document.querySelectorAll("span")].filter((ele) => ele.textContent === "Join now");
 			const divs = [...document.querySelectorAll('div')];
-			// const noParticipants = divs.find(e => e.textContent === "No one else is here");
 			const someoneIsPresent = divs.find(e => e.textContent.match(/in this call/));
 			if (joinNowElements.length > 0) {
 				const turnOffVideo = selectElementsByAriaLabel("turn off camera");
-				[...turnOffVideo].map(e => e.click())
-				// if (turnOffVideo) {
-				// 	turnOffVideo.click();
-				// }
+				[...turnOffVideo].forEach(e => e.click());
 				if (someoneIsPresent) {
-					joinNowElements.map(joinNowElement => joinNowElement.click());
-					clearInterval(interval);
+					joinNowElements.forEach(el => el.click());
+					clearInterval(intervalId);
+					document.removeEventListener('visibilitychange', handleVisibilityChange);
+					window.removeEventListener('focus', handleFocus);
 				}
 			}
 		} catch (err) {
 			console.log("Error", err);
 		}
-	}, 2000);
+	}
+
+	function handleVisibilityChange() {
+		if (document.visibilityState === 'visible') checkAndJoin();
+	}
+
+	function handleFocus() {
+		checkAndJoin();
+	}
+
+	intervalId = setInterval(checkAndJoin, 2000);
+	document.addEventListener('visibilitychange', handleVisibilityChange);
+	window.addEventListener('focus', handleFocus);
+
+	chrome.runtime.onMessage.addListener((message) => {
+		if (message.type === 'CHECK_JOIN') checkAndJoin();
+	});
 }
 
 function selectElementsByAriaLabel(pattern) {
   const regex = new RegExp(pattern, 'i'); // 'i' flag for case-insensitive
-  const allElements = document.querySelectorAll('div[aria-label]');
+  const allElements = document.querySelectorAll('[aria-label]');
   const matchedElements = Array.from(allElements).filter(el => 
     regex.test(el.getAttribute('aria-label'))
   );

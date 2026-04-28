@@ -3,6 +3,10 @@
   "name": "Auto Join",
   "version": "1.0",
   "description": "Auto Join",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["tabs", "alarms"],
   "content_scripts": [
     {
       "js": ["content.js"],
