@@ -103,21 +103,18 @@ function isAutoJoinMeetEntrypoint(url) {
 }
 
 function findConversationItems() {
-	const selectors = [
-		'[role="navigation"] [role="listitem"]',
-		'[role="navigation"] [role="treeitem"]',
-		'nav [role="listitem"]',
-		'[role="tree"] [role="treeitem"]',
-		'[role="list"] [role="listitem"]',
-	];
-	for (const sel of selectors) {
-		const items = [...document.querySelectorAll(sel)].filter(el => {
-			if (el.offsetParent === null) return false;
-			return el.querySelector('a[href]') || el.tagName === 'A';
-		});
-		if (items.length >= 2) return items;
+	return [...document.querySelectorAll('[role="list"] [role="listitem"][data-group-id]')]
+		.filter(el => el.offsetParent !== null);
+}
+
+function findSelectedConversationIndex(items) {
+	const urlMatch = location.pathname.match(/\/chat\/([^/?#]+)/);
+	const urlSegment = urlMatch ? urlMatch[1] : null;
+	if (urlSegment) {
+		const idx = items.findIndex(el => (el.id || '').includes(urlSegment));
+		if (idx !== -1) return idx;
 	}
-	return [];
+	return items.findIndex(el => el.getAttribute('aria-selected') === 'true');
 }
 
 function navigateConversation(delta) {
@@ -127,26 +124,14 @@ function navigateConversation(delta) {
 		return;
 	}
 
-	const currentPath = location.pathname + location.hash;
-	let currentIdx = items.findIndex(el => {
-		if (el.getAttribute('aria-selected') === 'true') return true;
-		if (el.getAttribute('aria-current') && el.getAttribute('aria-current') !== 'false') return true;
-		const a = el.tagName === 'A' ? el : el.querySelector('a[href]');
-		if (a) {
-			const href = a.getAttribute('href') || '';
-			if (href && currentPath.includes(href.replace(/^https?:\/\/[^/]+/, ''))) return true;
-		}
-		return false;
-	});
-
+	let currentIdx = findSelectedConversationIndex(items);
 	if (currentIdx === -1) currentIdx = delta > 0 ? -1 : items.length;
 	const nextIdx = Math.max(0, Math.min(items.length - 1, currentIdx + delta));
 	if (nextIdx === currentIdx) return;
 
 	const target = items[nextIdx];
-	const clickable = target.tagName === 'A' ? target : target.querySelector('a[href]') || target;
-	clickable.click();
-	clickable.scrollIntoView({ block: 'nearest' });
+	target.scrollIntoView({ block: 'nearest' });
+	target.click();
 }
 
 function chatShortcutsEntrypoint() {
