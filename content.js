@@ -130,11 +130,12 @@ function chatShortcutsEntrypoint() {
 			return;
 		}
 
-		// Ctrl+PageDown / Ctrl+PageUp → next/prev conversation (Chat builtin Ctrl+Alt+↓/↑)
-		if (ctrlOnly && (e.key === 'PageDown' || e.key === 'PageUp')) {
+		// Alt+ArrowDown / Alt+ArrowUp → next/prev conversation (Chat builtin Ctrl+Alt+↓/↑)
+		const altOnly = e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey;
+		if (altOnly && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
 			e.preventDefault();
 			e.stopPropagation();
-			const isDown = e.key === 'PageDown';
+			const isDown = e.key === 'ArrowDown';
 			const target = document.body;
 			fire(
 				target,
